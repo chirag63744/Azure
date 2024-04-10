@@ -162,8 +162,6 @@ python-jwt==4.1.0
 python-pptx==0.6.21
 pytz==2022.7.1
 PyWavelets==1.4.1
-pywin32==306
-pywin32-ctypes==0.2.2
 PyYAML==6.0
 pyzmq==25.1.0
 referencing==0.33.0
