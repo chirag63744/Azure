@@ -1,21 +1,13 @@
-from flask import Flask, request, jsonify,render_template
+from flask import Flask, request, jsonify
 import requests
-import pickle
-import time
-import numpy as np
 from PIL import Image
-import tensorflow as tf
+import numpy as np
 from io import BytesIO
+import tensorflow as tf
+import time
 import pyrebase
 
 app = Flask(__name__)
-
-# Load the StandardScaler and machine learning model for water quality prediction
-with open('scaler.pkl', 'rb') as scaler_file:
-    scaler = pickle.load(scaler_file)
-
-with open('model.pkl', 'rb') as model_file:
-    model_water_quality = pickle.load(model_file)
 
 # Load the trained image processing model
 model_image_processing = tf.keras.models.load_model('finasih.h5')
@@ -38,85 +30,8 @@ storage = firebase.storage()
 
 @app.route('/')
 def index():
-    return "<center><h1>Flask App Chirag </h1></center>"
+    return "<center><h1>Flask App Process Image </h1></center>"
 
-
-def calculate_pixels(image_url):
-    # Download the image from the URL
-    response = requests.get(image_url)
-
-    if response.status_code != 200:
-        return jsonify({'error': 'Failed to download image from the URL'})
-
-    # Open the image
-    image = Image.open(BytesIO(response.content))
-
-    # Get the image size (width x height)
-    width, height = image.size
-
-    image = image.convert('L')
-
-    # Calculate the total number of pixels
-    total_pixels = width * height
-
-    # Convert the image to a NumPy array for efficient pixel-wise operations
-    pixels = np.array(image)
-
-    # Calculate the number of white pixels (assuming white is represented by 255 in a grayscale image)
-    white_pixels = np.count_nonzero(pixels == 255)
-
-    return total_pixels, white_pixels
-
-@app.route('/predict_water_quality', methods=['POST'])
-def predict_water_quality():
-    try:
-        # Get input parameters from the request
-        input_data = request.get_json(force=True)
-
-        # Extract features and convert to float
-        features = [float(input_data[param]) for param in ['ph', 'Hardness', 'Solids', 'Chloramines', 'Sulfate', 'Conductivity', 'Organic_carbon', 'Trihalomethanes', 'Turbidity']]
-
-        # Apply StandardScaler
-        scaled_features = scaler.transform([features])
-
-        # Make predictions
-        prediction = model_water_quality.predict(scaled_features)[0]
-
-        # Convert prediction to a regular Python integer
-        prediction = int(prediction)
-
-        # Return the prediction as JSON
-        return jsonify({'prediction_water_quality': prediction})
-
-    except Exception as e:
-        return jsonify({'error_water_quality': str(e)})
-
-@app.route('/analyze', methods=['POST'])
-def analyze_image():
-    try:
-        # Get the image URL from the request
-        image_url = request.json.get('image_url', '')
-
-        if not image_url:
-            return jsonify({'error': 'Image URL is missing'})
-
-        # Calculate pixels
-        total_pixels, white_pixels = calculate_pixels(image_url)
-        water_pixels = total_pixels - white_pixels
-        area = water_pixels / total_pixels * 100
-
-        result = {
-            'total_pixels': total_pixels,
-            'white_pixels': white_pixels,
-            'water_pixels': water_pixels,
-            'area': area
-        }
-
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({'error_image_analysis': str(e)})
-
-@app.route('/process_image', methods=['POST'])
 @app.route('/process_image', methods=['POST'])
 def process_image():
     try:
@@ -156,5 +71,6 @@ def process_image():
         return jsonify({'output_image_url': storage.child(output_image_path).get_url(None)})
     except Exception as e:
         return jsonify({'error': str(e)})
+
 if __name__=="__main__":
     app.run()
