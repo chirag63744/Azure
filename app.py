@@ -38,7 +38,7 @@ storage = firebase.storage()
 
 @app.route('/')
 def index():
-    return "<center><h1>Flask App </h1></center>"
+    return "<center><h1>Flask App Chirag </h1></center>"
 
 
 def calculate_pixels(image_url):
