@@ -132,3 +132,7 @@ pdfminer.six==20191110
 pefile==2023.2.7
 pickleshare==0.7.5
 Pillow==9.4.0
+pyrebase4
+requests
+scikit-learn==1.2.2
+tensorflow
